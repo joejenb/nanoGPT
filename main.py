@@ -142,8 +142,8 @@ class Gpt2ClassificationCollator(object):
         #inputs = self.use_tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
         # Update the inputs with the associated encoded labels as tensor.
         texts.append(enc.eot_token) # add the end of text token, e.g. 50256 for gpt2 bpe
-        inputs = {'texts':texts,
-            'labels':torch.tensor(labels)}
+        inputs = {'texts': torch.tensor(texts),
+            'labels': torch.tensor(labels)}
 
         return inputs
 
