@@ -278,10 +278,10 @@ class GPT(nn.Module):
 class GPT2ForSequenceClassification(nn.Module):
     _keys_to_ignore_on_load_missing = [r"h\.\d+\.attn\.masked_bias", r"lm_head.weight"]
 
-    def __init__(self, config):
+    def __init__(self, config, model_type, override_args):
         super().__init__(config)
         self.num_labels = config.num_labels
-        self.transformer = GPT(config)
+        self.transformer = GPT.from_pretrained(model_type, override_args)
         self.score = nn.Linear(config.n_embd, self.num_labels, bias=False)
 
         # Initialize weights and apply final processing
@@ -348,10 +348,6 @@ class GPT2ForSequenceClassification(nn.Module):
 
     def crop_block_size(self, block_size):
         self.transformer.crop_block_size(block_size)
-
-    @classmethod
-    def from_pretrained(cls, model_type, override_args):
-        return GPT.from_pretrained(model_type, override_args)
 
     def configure_optimizers(self, weight_decay, learning_rate, betas):
         return self.transformer.configure_optimizers(weight_decay, learning_rate, betas)
