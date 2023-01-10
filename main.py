@@ -132,7 +132,7 @@ class Gpt2ClassificationCollator(object):
         """
 
         # Get all texts from sequences list.
-        texts = [enc.encode_ordinary(sequence['text']) + enc.eot_token for sequence in sequences]
+        texts = [enc.encode_ordinary(sequence['text']) + [enc.eot_token] for sequence in sequences]
         # Get all labels from sequences list.
         labels = [sequence['label'] for sequence in sequences]
         # Encode all labels using label encoder.
