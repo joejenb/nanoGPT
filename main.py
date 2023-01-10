@@ -157,7 +157,7 @@ class Gpt2ClassificationCollator(object):
 # default config values designed to train a gpt2 (124M) on OpenWebText
 # I/O
 out_dir = 'out'
-eval_interval = 2000
+eval_interval = 1
 log_interval = 1
 eval_iters = 200
 eval_only = False # if True, script exits right after the first eval
@@ -482,11 +482,11 @@ def validation(dataloader, device_):
 # training loop
 while True:
 
-    if iter_num % eval_interval == 0:
-        losses = validation(valid_dataloader, device)
-        print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
-        if losses['val'] < best_val_loss or always_save_checkpoint:
-            best_val_loss = losses['val']
+    if iter_num % eval_interval == 0 and not iter_num:
+        _, _, loss = validation(valid_dataloader, device)
+        print(f"step {iter_num}: loss: {loss}")
+        if loss['val'] < best_val_loss or always_save_checkpoint:
+            best_val_loss = loss
             raw_model = model
             if iter_num > 0:
                 checkpoint = {
