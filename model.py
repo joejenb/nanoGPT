@@ -298,7 +298,7 @@ class GPT2ForSequenceClassification(nn.Module):
         """
 
         transformer_outputs = self.transformer(input_ids)
-        hidden_states = transformer_outputs[1]
+        hidden_states = transformer_outputs[0]
         logits = self.score(hidden_states)
 
         batch_size, sequence_length = input_ids.shape[:2]
