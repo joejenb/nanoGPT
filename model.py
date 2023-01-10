@@ -333,6 +333,7 @@ class GPT2ForSequenceClassification(nn.Module):
                 else:
                     loss = loss_fct(pooled_logits, labels)
             elif self.config.problem_type == "single_label_classification":
+                print(pooled_logits.view(-1, self.num_labels).size(), labels.view(-1).size())
                 loss_fct = nn.CrossEntropyLoss()
                 loss = loss_fct(pooled_logits.view(-1, self.num_labels), labels.view(-1))
             elif self.config.problem_type == "multi_label_classification":
