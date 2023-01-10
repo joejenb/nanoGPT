@@ -285,7 +285,7 @@ class GPT2ForSequenceClassification(nn.Module):
         super().__init__()
         self.num_labels = config.num_labels
         self.transformer = GPT.from_pretrained(model_type, override_args)
-        self.score = nn.Linear(config.n_embd, self.num_labels, bias=False)
+        self.score = nn.Linear(config.vocab_size, self.num_labels, bias=False)
         self.config = config
 
     def forward(self, input_ids=None, inputs_embeds=None, labels=None, return_dict=None):
