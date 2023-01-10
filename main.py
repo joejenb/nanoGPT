@@ -485,7 +485,7 @@ while True:
     if iter_num % eval_interval == 0 and not iter_num:
         _, _, loss = validation(valid_dataloader, device)
         print(f"step {iter_num}: loss: {loss}")
-        if loss['val'] < best_val_loss or always_save_checkpoint:
+        if loss < best_val_loss or always_save_checkpoint:
             best_val_loss = loss
             raw_model = model
             if iter_num > 0:
