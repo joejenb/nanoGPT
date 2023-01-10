@@ -281,7 +281,7 @@ class GPT2ForSequenceClassification(nn.Module):
     _keys_to_ignore_on_load_missing = [r"h\.\d+\.attn\.masked_bias", r"lm_head.weight"]
 
     def __init__(self, config, model_type, override_args):
-        super().__init__(config)
+        super().__init__()
         self.num_labels = config.num_labels
         self.transformer = GPT.from_pretrained(model_type, override_args)
         self.score = nn.Linear(config.n_embd, self.num_labels, bias=False)
