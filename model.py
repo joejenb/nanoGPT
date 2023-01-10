@@ -100,6 +100,7 @@ class GPTConfig:
     dropout: float = 0.1
     num_labels: int = 12
     pad_token_id: int = 50256
+    problem_type: str = "single_label_classification"
 
 
 class GPT(nn.Module):
@@ -143,7 +144,7 @@ class GPT(nn.Module):
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
 
-        return logits, loss
+        return loss, logits
 
     def crop_block_size(self, block_size):
         # model surgery to decrease the block size if necessary
@@ -288,7 +289,7 @@ class GPT2ForSequenceClassification(nn.Module):
         self.score = nn.Linear(config.vocab_size, self.num_labels, bias=False)
         self.config = config
 
-    def forward(self, input_ids=None, inputs_embeds=None, labels=None, return_dict=None):
+    def forward(self, input_ids=None, labels=None, return_dict=None):
         r"""
         labels (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
             Labels for computing the sequence classification/regression loss. Indices should be in `[0, ...,
@@ -300,10 +301,7 @@ class GPT2ForSequenceClassification(nn.Module):
         hidden_states = transformer_outputs[0]
         logits = self.score(hidden_states)
 
-        if input_ids is not None:
-            batch_size, sequence_length = input_ids.shape[:2]
-        else:
-            batch_size, sequence_length = inputs_embeds.shape[:2]
+        batch_size, sequence_length = input_ids.shape[:2]
 
         assert (
             self.config.pad_token_id is not None or batch_size == 1
@@ -344,7 +342,7 @@ class GPT2ForSequenceClassification(nn.Module):
             output = (pooled_logits,) + transformer_outputs[1:]
             return ((loss,) + output) if loss is not None else output
 
-        return pooled_logits, loss
+        return loss, pooled_logits
 
     def crop_block_size(self, block_size):
         self.transformer.crop_block_size(block_size)
