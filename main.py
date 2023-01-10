@@ -359,7 +359,7 @@ def train(dataloader, optimizer_, device_, iter_num):
         # have provided the `labels`.
         # The documentation for this a bert model function is here: 
         # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
-        outputs = model(batch["text"], batch["labels"])
+        outputs = model(batch["input_ids"], batch["labels"])
 
         # The call to `model` always returns a tuple, so we need to pull the 
         # loss value out of the tuple along with the logits. We will use logits
@@ -449,7 +449,7 @@ def validation(dataloader, device_):
     # differentiates sentence 1 and 2 in 2-sentence tasks.
     # The documentation for this `model` function is here: 
     # https://huggingface.co/transformers/v2.2.0/model_doc/bert.html#transformers.BertForSequenceClassification
-    outputs = model(batch["text"], batch["labels"])
+    outputs = model(batch["input_ids"], batch["labels"])
 
     # The call to `model` always returns a tuple, so we need to pull the 
     # loss value out of the tuple along with the logits. We will use logits
