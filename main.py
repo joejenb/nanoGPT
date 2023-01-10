@@ -112,7 +112,7 @@ class Gpt2ClassificationCollator(object):
         # Tokenizer to be used inside the class.
         self.use_tokenizer = use_tokenizer
         # Check max sequence length.
-        #self.max_sequence_len = use_tokenizer.model_max_length if max_sequence_len is None else max_sequence_len
+        self.max_sequence_len = use_tokenizer.model_max_length if max_sequence_len is None else max_sequence_len
         # Label encoder used inside the class.
         self.labels_encoder = labels_encoder
 
@@ -132,7 +132,8 @@ class Gpt2ClassificationCollator(object):
         """
 
         # Get all texts from sequences list.
-        texts = [enc.encode_ordinary(sequence['text']) + [enc.eot_token] for sequence in sequences]
+        #texts = [enc.encode_ordinary(sequence['text']) + [enc.eot_token] for sequence in sequences]
+        texts = [sequence['text'] for sequence in sequences]
         # Get all labels from sequences list.
         labels = [sequence['label'] for sequence in sequences]
         # Encode all labels using label encoder.
@@ -141,10 +142,13 @@ class Gpt2ClassificationCollator(object):
         # appropriate padding.
         #inputs = self.use_tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
         # Update the inputs with the associated encoded labels as tensor.
-        print(len(texts), len(texts[0]))
-        print(len(labels), labels[0])
-        inputs = {'texts': torch.tensor(texts),
-            'labels': torch.tensor(labels)}
+        #print(len(texts), len(texts[0]))
+        #print(len(labels), labels[0])
+        #inputs = {'texts': torch.tensor(texts),
+        #    'labels': torch.tensor(labels)}
+        inputs = self.use_tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
+        # Update the inputs with the associated encoded labels as tensor.
+        inputs.update({'labels':torch.tensor(labels)})
 
         return inputs
 
@@ -267,12 +271,17 @@ def get_lr(iter):
     coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio)) # coeff ranges 0..1
     return min_lr + coeff * (learning_rate - min_lr)
 
-enc = tiktoken.get_encoding("gpt2")
+tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model_name_or_path=model)
+tokenizer.padding_side = "left"
+tokenizer.pad_token = tokenizer.eos_token
+model.resize_token_embeddings(len(tokenizer))
+
 labels_ids = {'neg': 0, 'pos': 1}
-gpt2_classificaiton_collator = Gpt2ClassificationCollator(use_tokenizer=enc, 
-                                                          labels_encoder=labels_ids)
+gpt2_classificaiton_collator = Gpt2ClassificationCollator(use_tokenizer=tokenizer, 
+                                                          labels_encoder=labels_ids,
+                                                          max_sequence_len=60)
 train_dataset = MovieReviewsDataset(path='/content/aclImdb/train', 
-                               use_tokenizer=enc)
+                               use_tokenizer=tokenizer)
 print('Created `train_dataset` with %d examples!'%len(train_dataset))
 
 # Move pytorch dataset into dataloader.
@@ -284,7 +293,7 @@ print()
 print('Dealing with Validation...')
 # Create pytorch dataset.
 valid_dataset =  MovieReviewsDataset(path='/content/aclImdb/test', 
-                               use_tokenizer=enc)
+                               use_tokenizer=tokenizer)
 print('Created `valid_dataset` with %d examples!'%len(valid_dataset))
 
 # Move pytorch dataset into dataloader.
