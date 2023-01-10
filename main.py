@@ -465,7 +465,6 @@ def validation(dataloader, device_):
     # calculate the average loss at the end. `loss` is a Tensor containing a
     # single value; the `.item()` function just returns the Python value 
     # from the tensor.
-    print(loss)
     total_loss += loss.item()
     
     # get predicitons to list
