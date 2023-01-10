@@ -279,7 +279,7 @@ tokenizer.pad_token = tokenizer.eos_token
 labels_ids = {'neg': 0, 'pos': 1}
 gpt2_classificaiton_collator = Gpt2ClassificationCollator(use_tokenizer=tokenizer, 
                                                           labels_encoder=labels_ids,
-                                                          max_sequence_len=None)
+                                                          max_sequence_len=100)
 train_dataset = MovieReviewsDataset(path='/content/aclImdb/train', 
                                use_tokenizer=tokenizer)
 print('Created `train_dataset` with %d examples!'%len(train_dataset))
