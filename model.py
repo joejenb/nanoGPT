@@ -144,7 +144,7 @@ class GPT(nn.Module):
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
 
-        return loss, logits
+        return logits, loss
 
     def crop_block_size(self, block_size):
         # model surgery to decrease the block size if necessary
@@ -298,7 +298,7 @@ class GPT2ForSequenceClassification(nn.Module):
         """
 
         transformer_outputs = self.transformer(input_ids)
-        hidden_states = transformer_outputs[0]
+        hidden_states = transformer_outputs[1]
         logits = self.score(hidden_states)
 
         batch_size, sequence_length = input_ids.shape[:2]
@@ -342,7 +342,7 @@ class GPT2ForSequenceClassification(nn.Module):
             output = (pooled_logits,) + transformer_outputs[1:]
             return ((loss,) + output) if loss is not None else output
 
-        return loss, pooled_logits
+        return pooled_logits, loss
 
     def crop_block_size(self, block_size):
         self.transformer.crop_block_size(block_size)

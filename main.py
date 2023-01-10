@@ -456,7 +456,7 @@ def validation(dataloader, device_):
     # The call to `model` always returns a tuple, so we need to pull the 
     # loss value out of the tuple along with the logits. We will use logits
     # later to to calculate training accuracy.
-    loss, logits = outputs[:2]
+    logits, loss = outputs[:2]
     
     # Move logits and labels to CPU
     logits = logits.detach().cpu().numpy()
