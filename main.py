@@ -23,6 +23,7 @@ from torch.utils.data import Dataset, DataLoader
 import io
 from ftfy import fix_text
 from transformers import GPT2Tokenizer
+import tiktoken
 
 class MovieReviewsDataset(Dataset):
   r"""PyTorch Dataset class for loading data.
