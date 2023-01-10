@@ -365,7 +365,7 @@ def train(dataloader, optimizer_, device_, iter_num):
         # The call to `model` always returns a tuple, so we need to pull the 
         # loss value out of the tuple along with the logits. We will use logits
         # later to calculate training accuracy.
-        loss, logits = outputs[:2]
+        logits, loss = outputs[:2]
 
         # Accumulate the training loss over all of the batches so that we can
         # calculate the average loss at the end. `loss` is a Tensor containing a
@@ -465,6 +465,7 @@ def validation(dataloader, device_):
     # calculate the average loss at the end. `loss` is a Tensor containing a
     # single value; the `.item()` function just returns the Python value 
     # from the tensor.
+    print(loss)
     total_loss += loss.item()
     
     # get predicitons to list
