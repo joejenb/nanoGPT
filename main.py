@@ -274,8 +274,7 @@ def get_lr(iter):
 tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model_name_or_path="gpt2")
 tokenizer.padding_side = "left"
 tokenizer.pad_token = tokenizer.eos_token
-print(len(tokenizer))
-model.resize_token_embeddings(len(tokenizer))
+#model.resize_token_embeddings(len(tokenizer))
 
 labels_ids = {'neg': 0, 'pos': 1}
 gpt2_classificaiton_collator = Gpt2ClassificationCollator(use_tokenizer=tokenizer, 
