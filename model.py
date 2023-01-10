@@ -286,9 +286,6 @@ class GPT2ForSequenceClassification(nn.Module):
         self.transformer = GPT.from_pretrained(model_type, override_args)
         self.score = nn.Linear(config.n_embd, self.num_labels, bias=False)
 
-        # Initialize weights and apply final processing
-        self.post_init()
-
     def forward(self, input_ids=None, inputs_embeds=None, labels=None, return_dict=None):
         r"""
         labels (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
