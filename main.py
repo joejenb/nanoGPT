@@ -271,9 +271,10 @@ def get_lr(iter):
     coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio)) # coeff ranges 0..1
     return min_lr + coeff * (learning_rate - min_lr)
 
-tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model_name_or_path=model)
+tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model_name_or_path="gpt2")
 tokenizer.padding_side = "left"
 tokenizer.pad_token = tokenizer.eos_token
+print(len(tokenizer))
 model.resize_token_embeddings(len(tokenizer))
 
 labels_ids = {'neg': 0, 'pos': 1}
