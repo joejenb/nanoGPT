@@ -99,6 +99,7 @@ class GPTConfig:
     n_embd: int = 768
     dropout: float = 0.1
     num_labels: int = 12
+    pad_token_id: int = 50256
 
 
 class GPT(nn.Module):
@@ -293,7 +294,6 @@ class GPT2ForSequenceClassification(nn.Module):
             config.num_labels - 1]`. If `config.num_labels == 1` a regression loss is computed (Mean-Square loss), If
             `config.num_labels > 1` a classification loss is computed (Cross-Entropy).
         """
-        return_dict = return_dict if return_dict is not None else self.config.use_return_dict
 
         transformer_outputs = self.transformer(input_ids)
         hidden_states = transformer_outputs[0]
