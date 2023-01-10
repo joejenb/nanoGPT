@@ -345,3 +345,15 @@ class GPT2ForSequenceClassification(nn.Module):
             return ((loss,) + output) if loss is not None else output
 
         return pooled_logits, loss
+
+    def crop_block_size(self, block_size):
+        self.transformer.crop_block_size(block_size)
+
+    @classmethod
+    def from_pretrained(cls, model_type, override_args):
+        return GPT.transformer.from_pretrained()
+
+    def configure_optimizers(self, weight_decay, learning_rate, betas):
+        return self.transformer.configure_optimizers(weight_decay, learning_rate, betas)
+
+
