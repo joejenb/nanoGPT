@@ -142,7 +142,7 @@ class Gpt2ClassificationCollator(object):
         #inputs = self.use_tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
         # Update the inputs with the associated encoded labels as tensor.
         print(len(texts), len(texts[0]))
-        print(len(labels), len(labels[0]))
+        print(len(labels), labels[0])
         inputs = {'texts': torch.tensor(texts),
             'labels': torch.tensor(labels)}
 
