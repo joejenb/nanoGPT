@@ -132,7 +132,7 @@ class Gpt2ClassificationCollator(object):
         """
 
         # Get all texts from sequences list.
-        texts = [enc.encode_ordinary(sequence['text']) for sequence in sequences]
+        texts = [enc.encode_ordinary(sequence['text']) + enc.eot_token for sequence in sequences]
         # Get all labels from sequences list.
         labels = [sequence['label'] for sequence in sequences]
         # Encode all labels using label encoder.
@@ -141,7 +141,8 @@ class Gpt2ClassificationCollator(object):
         # appropriate padding.
         #inputs = self.use_tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
         # Update the inputs with the associated encoded labels as tensor.
-        texts.append(enc.eot_token) # add the end of text token, e.g. 50256 for gpt2 bpe
+        print(len(texts), len(texts[0]))
+        print(len(labels), len(labels[0]))
         inputs = {'texts': torch.tensor(texts),
             'labels': torch.tensor(labels)}
 
