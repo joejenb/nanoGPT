@@ -98,6 +98,8 @@ class GPTConfig:
     n_head: int = 12
     n_embd: int = 768
     dropout: float = 0.1
+    num_labels: int = 12
+
 
 class GPT(nn.Module):
 

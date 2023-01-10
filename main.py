@@ -242,7 +242,8 @@ elif init_from.startswith('gpt2'):
     print(f"Initializing from OpenAI GPT-2 weights: {init_from}")
     # initialize from OpenAI GPT-2 weights
     override_args = dict(dropout=dropout)
-    model = GPT2ForSequenceClassification(init_from, override_args)
+    gptconf = GPTConfig(**model_args)
+    model = GPT2ForSequenceClassification(gptconf, init_from, override_args)
     # read off and override the GPT sizing model args from the model config
     model_args['n_layer'] = model.config.n_layer
     model_args['n_head'] = model.config.n_head
