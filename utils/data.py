@@ -49,8 +49,8 @@ class GoEmotionDataset:
         return len(self.texts)
     
     def __getitem__(self, index):
-        text = self.texts[index]
-        targets = self.targets[index]
+        text = torch.Tensor(self.texts[index])
+        targets = torch.Tensor(self.targets[index])
         
         return {
             "text": text, 
