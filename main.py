@@ -113,7 +113,7 @@ def main():
     checkpoint_location = f'checkpoints/{config.data_set}.ckpt'
     output_location = f'outputs/{config.data_set}.ckpt'
 
-    model = nanoGPTClassifier(config, device).to(device)
+    model = nanoGPTClassifier(config).to(device)
     model = load_from_checkpoint(model, checkpoint_location)
     if config.block_size < model.config.block_size:
         model.crop_block_size(config.block_size)
