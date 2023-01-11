@@ -1,14 +1,4 @@
-"""
-Full definition of a GPT Language Model, all of it in this single file.
-References:
-1) the official GPT-2 TensorFlow implementation released by OpenAI:
-https://github.com/openai/gpt-2/blob/master/src/model.py
-2) huggingface/transformers PyTorch implementation:
-https://github.com/huggingface/transformers/blob/main/src/transformers/models/gpt2/modeling_gpt2.py
-"""
-
 import math
-from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
@@ -90,20 +80,7 @@ class Block(nn.Module):
         x = x + self.mlp(self.ln_2(x))
         return x
 
-@dataclass
-class GPTConfig:
-    block_size: int = 1024
-    vocab_size: int = 50257
-    n_layer: int = 12
-    n_head: int = 12
-    n_embd: int = 768
-    dropout: float = 0.1
-    num_labels: int = 12
-    pad_token_id: int = 50256
-    problem_type: str = "single_label_classification"
-
-
-class GPT(nn.Module):
+class nanoGPT(nn.Module):
 
     def __init__(self, config):
         super().__init__()
@@ -157,34 +134,24 @@ class GPT(nn.Module):
             block.attn.bias = block.attn.bias[:,:,:block_size,:block_size]
 
     @classmethod
-    def from_pretrained(cls, model_type, override_args):
-        assert model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
+    def from_pretrained(cls, config):
+        assert config.model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
         # only dropout can be overridden see more notes below
-        assert all(k == 'dropout' for k in override_args)
         from transformers import GPT2LMHeadModel
-        print("loading weights from pretrained gpt: %s" % model_type)
-
         # n_layer, n_head and n_embd are determined from model_type
         config_args = {
             'gpt2':         dict(n_layer=12, n_head=12, n_embd=768),  # 124M params
             'gpt2-medium':  dict(n_layer=24, n_head=16, n_embd=1024), # 350M params
             'gpt2-large':   dict(n_layer=36, n_head=20, n_embd=1280), # 774M params
             'gpt2-xl':      dict(n_layer=48, n_head=25, n_embd=1600), # 1558M params
-        }[model_type]
-        # we can override the dropout rate
-        if 'dropout' in override_args:
-            config_args['dropout'] = override_args['dropout']
-        # block_size is always 1024 for GPT model checkpoints
-        # if one wants a lower block_size it has to be done through model surgery
-        # later, by calling crop_block_size()
+        }[config.model_type]
 
         # create a from-scratch initialized minGPT model
-        config = GPTConfig(block_size=1024, **config_args)
-        model = GPT(config)
+        model = nanoGPT(config)
         sd = model.state_dict()
 
         # init a huggingface/transformers model
-        model_hf = GPT2LMHeadModel.from_pretrained(model_type)
+        model_hf = GPT2LMHeadModel.from_pretrained(config.model_type)
         sd_hf = model_hf.state_dict()
 
         # copy while ensuring all of the parameters are aligned and match in names and shapes
@@ -279,24 +246,17 @@ class GPT(nn.Module):
 
         return idx
 
-class GPT2ForSequenceClassification(nn.Module):
+class nanoGPTClassifier(nn.Module):
     _keys_to_ignore_on_load_missing = [r"h\.\d+\.attn\.masked_bias", r"lm_head.weight"]
 
     def __init__(self, config, model_type, override_args):
         super().__init__()
         self.num_labels = config.num_labels
-        self.transformer = GPT.from_pretrained(model_type, override_args)
+        self.transformer = nanoGPT.from_pretrained(model_type, override_args)
         self.score = nn.Linear(config.vocab_size, self.num_labels, bias=False)
         self.config = config
 
     def forward(self, input_ids=None, labels=None, return_dict=None):
-        r"""
-        labels (`torch.LongTensor` of shape `(batch_size,)`, *optional*):
-            Labels for computing the sequence classification/regression loss. Indices should be in `[0, ...,
-            config.num_labels - 1]`. If `config.num_labels == 1` a regression loss is computed (Mean-Square loss), If
-            `config.num_labels > 1` a classification loss is computed (Cross-Entropy).
-        """
-
         transformer_outputs = self.transformer(input_ids)
         hidden_states = transformer_outputs[0]
         logits = self.score(hidden_states)
@@ -345,6 +305,8 @@ class GPT2ForSequenceClassification(nn.Module):
         self.transformer.crop_block_size(block_size)
 
     def configure_optimizers(self, weight_decay, learning_rate, betas):
-        return self.transformer.configure_optimizers(weight_decay, learning_rate, betas)
+        optimizer = self.transformer.configure_optimizers(weight_decay, learning_rate, betas)
+        optimizer.param_groups.append({'params': [self.score]})
+        return optimizer
 
 
