@@ -19,6 +19,6 @@ config["vocab_size"] = 50257
 config["num_labels"] = 28
 config["pad_token_id"] = 50256
 config["problem_type"] = "multi_label_classification"
-
+config["tokenizer"] = "GPT2Tokenizer"
 config["data_set"] = "GOEMOTIONS"
 config["init_from"] = "gpt2"
