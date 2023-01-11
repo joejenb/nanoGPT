@@ -8,6 +8,7 @@ from torch.utils.data import random_split
 from datasets import load_dataset
 from transformers import GPT2Tokenizer
 from sklearn.preprocessing import MultiLabelBinarizer
+from torch.utils.data import Dataset, DataLoader
 
 _GO_EMOTIONS_LABELS = [
     "admiration",
@@ -40,7 +41,7 @@ _GO_EMOTIONS_LABELS = [
     "neutral",
 ]
 
-class GoEmotionDataset:
+class GoEmotionDataset(Dataset):
     def __init__(self, texts, targets):
         self.texts = texts
         self.targets = targets
@@ -111,8 +112,8 @@ def get_data_loaders(config, PATH):
         train_set = pd.concat([val_set, pd.DataFrame(mlb.fit_transform(val_set))], axis=1)
         train_set = pd.concat([test_set, pd.DataFrame(mlb.fit_transform(test_set))], axis=1)
 
-    train_loader = torch.utils.data.DataLoader(train_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
-    val_loader = torch.utils.data.DataLoader(val_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
-    test_loader = torch.utils.data.DataLoader(test_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
+    train_loader = DataLoader(train_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
+    val_loader = DataLoader(val_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
+    test_loader = DataLoader(test_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
     
     return train_loader, val_loader, test_loader, num_classes
