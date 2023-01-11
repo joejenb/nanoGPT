@@ -16,28 +16,28 @@ class CausalSelfAttention(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        assert config.n_embd % config.n_head == 0
+        assert config.num_embeddings % config.num_heads == 0
         # key, query, value projections for all heads, but in a batch
-        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd)
+        self.c_attn = nn.Linear(config.num_embeddings, 3 * config.num_embeddings)
         # output projection
-        self.c_proj = nn.Linear(config.n_embd, config.n_embd)
+        self.c_proj = nn.Linear(config.num_embeddings, config.num_embeddings)
         # regularization
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
         # causal mask to ensure that attention is only applied to the left in the input sequence
         self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size))
                                     .view(1, 1, config.block_size, config.block_size))
-        self.n_head = config.n_head
-        self.n_embd = config.n_embd
+        self.num_heads = config.num_heads
+        self.num_embeddings = config.num_embeddings
 
     def forward(self, x):
-        B, T, C = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
+        B, T, C = x.size() # batch size, sequence length, embedding dimensionality (num_embeddings)
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
-        q, k ,v  = self.c_attn(x).split(self.n_embd, dim=2)
-        k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        q, k ,v  = self.c_attn(x).split(self.num_embeddings, dim=2)
+        k = k.view(B, T, self.num_heads, C // self.num_heads).transpose(1, 2) # (B, nh, T, hs)
+        q = q.view(B, T, self.num_heads, C // self.num_heads).transpose(1, 2) # (B, nh, T, hs)
+        v = v.view(B, T, self.num_heads, C // self.num_heads).transpose(1, 2) # (B, nh, T, hs)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
@@ -55,8 +55,8 @@ class MLP(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.c_fc    = nn.Linear(config.n_embd, 4 * config.n_embd)
-        self.c_proj  = nn.Linear(4 * config.n_embd, config.n_embd)
+        self.c_fc    = nn.Linear(config.num_embeddings, 4 * config.num_embeddings)
+        self.c_proj  = nn.Linear(4 * config.num_embeddings, config.num_embeddings)
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
@@ -70,9 +70,9 @@ class Block(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.ln_1 = nn.LayerNorm(config.n_embd)
+        self.ln_1 = nn.LayerNorm(config.num_embeddings)
         self.attn = CausalSelfAttention(config)
-        self.ln_2 = nn.LayerNorm(config.n_embd)
+        self.ln_2 = nn.LayerNorm(config.num_embeddings)
         self.mlp = MLP(config)
 
     def forward(self, x):
@@ -89,13 +89,13 @@ class nanoGPT(nn.Module):
         self.config = config
 
         self.transformer = nn.ModuleDict(dict(
-            wte = nn.Embedding(config.vocab_size, config.n_embd),
-            wpe = nn.Embedding(config.block_size, config.n_embd),
+            wte = nn.Embedding(config.vocab_size, config.num_embeddings),
+            wpe = nn.Embedding(config.block_size, config.num_embeddings),
             drop = nn.Dropout(config.dropout),
-            h = nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
-            ln_f = nn.LayerNorm(config.n_embd),
+            h = nn.ModuleList([Block(config) for _ in range(config.num_layers)]),
+            ln_f = nn.LayerNorm(config.num_embeddings),
         ))
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.lm_head = nn.Linear(config.num_embeddings, config.vocab_size, bias=False)
 
         # report number of parameters (note we don't count the decoder parameters in lm_head)
         n_params = sum(p.numel() for p in self.transformer.parameters())
@@ -108,8 +108,8 @@ class nanoGPT(nn.Module):
         pos = torch.arange(0, t, dtype=torch.long, device=device).unsqueeze(0) # shape (1, t)
 
         # forward the GPT model itself
-        tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, n_embd)
-        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, n_embd)
+        tok_emb = self.transformer.wte(idx) # token embeddings of shape (b, t, num_embeddings)
+        pos_emb = self.transformer.wpe(pos) # position embeddings of shape (1, t, num_embeddings)
         x = self.transformer.drop(tok_emb + pos_emb)
         for block in self.transformer.h:
             x = block(x)
@@ -138,12 +138,12 @@ class nanoGPT(nn.Module):
         assert config.model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
         # only dropout can be overridden see more notes below
         from transformers import GPT2LMHeadModel
-        # n_layer, n_head and n_embd are determined from model_type
+        # num_layers, num_heads and num_embeddings are determined from model_type
         config_args = {
-            'gpt2':         dict(n_layer=12, n_head=12, n_embd=768),  # 124M params
-            'gpt2-medium':  dict(n_layer=24, n_head=16, n_embd=1024), # 350M params
-            'gpt2-large':   dict(n_layer=36, n_head=20, n_embd=1280), # 774M params
-            'gpt2-xl':      dict(n_layer=48, n_head=25, n_embd=1600), # 1558M params
+            'gpt2':         dict(num_layers=12, num_heads=12, num_embeddings=768),  # 124M params
+            'gpt2-medium':  dict(num_layers=24, num_heads=16, num_embeddings=1024), # 350M params
+            'gpt2-large':   dict(num_layers=36, num_heads=20, num_embeddings=1280), # 774M params
+            'gpt2-xl':      dict(num_layers=48, num_heads=25, num_embeddings=1600), # 1558M params
         }[config.model_type]
 
         # create a from-scratch initialized minGPT model
