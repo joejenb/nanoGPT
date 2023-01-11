@@ -108,9 +108,9 @@ def get_data_loaders(config, PATH):
         val_set = go_emotions.data["validation"].to_pandas()
         test_set = go_emotions.data["test"].to_pandas()
 
-        train_set = pd.concat([train_set, pd.DataFrame(mlb.fit_transform(train_set))], axis=1)
-        train_set = pd.concat([val_set, pd.DataFrame(mlb.fit_transform(val_set))], axis=1)
-        train_set = pd.concat([test_set, pd.DataFrame(mlb.fit_transform(test_set))], axis=1)
+        train_set = GoEmotionDataset(train_set.text.tolist(), pd.DataFrame(mlb.fit_transform(train_set['labels'])).values.tolist())
+        val_set = GoEmotionDataset(val_set.text.tolist(), pd.DataFrame(mlb.fit_transform(val_set['labels'])).values.tolist())
+        test_set = GoEmotionDataset(test_set.text.tolist(), pd.DataFrame(mlb.fit_transform(test_set['labels'])).values.tolist())
 
     train_loader = DataLoader(train_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
     val_loader = DataLoader(val_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
