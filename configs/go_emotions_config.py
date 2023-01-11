@@ -21,4 +21,5 @@ config["pad_token_id"] = 50256
 config["problem_type"] = "multi_label_classification"
 config["tokenizer"] = "GPT2Tokenizer"
 config["data_set"] = "GOEMOTIONS"
+config["max_sequence_len"] = 100
 config["init_from"] = "gpt2"
