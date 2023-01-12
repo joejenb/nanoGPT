@@ -67,7 +67,7 @@ class ClassificationCollator:
 
     def __call__(self, data):
         texts = [inst['text'] for inst in data]
-        targets = [self.targets_encoder[inst['targets']] for inst in data]
+        targets = [inst['targets'] for inst in data]
 
         inputs = self.use_tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
         inputs.update({'targets': torch.tensor(targets)})
