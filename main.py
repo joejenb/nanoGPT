@@ -110,8 +110,8 @@ def main():
                 "Validation Error" : val_error / len(val_loader.dataset),
                 f'Example Probabilities {epoch}': outputs,
                 f'Example Targets {epoch}': targets,
-                f'AUROC': auroc,
-                f'Accuracy' : accuracy,
+                f'AUROC': auroc.item(),
+                f'Accuracy' : accuracy.item(),
             })
 
             if val_error < best_val_loss:
