@@ -99,7 +99,7 @@ def main():
 
     for epoch in range(config.epochs):
 
-        train_error = 0#train(model, train_loader, epoch, optimiser)
+        train_error = train(model, train_loader, epoch, optimiser)
 
         if not epoch % 5:
             val_error, outputs, targets, auroc, accuracy = test(model, val_loader, epoch)
