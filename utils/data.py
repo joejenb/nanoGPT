@@ -80,7 +80,7 @@ def get_tokenizer(tokenizer_name):
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
 
-def get_data_loaders(config, PATH):
+def get_data_loaders(config):
     mlb = MultiLabelBinarizer()
     if config.data_set == "GOEMOTIONS":
         num_classes = len(_GO_EMOTIONS_LABELS)
@@ -110,6 +110,4 @@ def log_bar(wandb, title, labels, values, columns, epoch):
     table = wandb.Table(data=entries, columns = columns)
     
     #  wandb seems to overwrite tabeles and charts so name according to epoch
-    wandb.log({
-        title + str(epoch) : wandb.plot.bar(table, columns[0], columns[1], title=title)
-    })
+    return wandb.plot.bar(table, columns[0], columns[1], title=title)

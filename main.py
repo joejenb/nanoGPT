@@ -3,12 +3,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchmetrics.functional.classification import multilabel_auroc, multilabel_accuracy
 
-import argparse
-
 import numpy as np
-import os
-
 import wandb
+import os
 
 from nanoGPT import nanoGPTClassifier
 from utils import get_lr
@@ -47,11 +44,6 @@ def train(model, train_loader, epoch, optimiser):
         
         train_error += loss.item()
 
-    wandb.log({
-        "Train Error" : train_error / len(train_loader.dataset)
-    })
-
-
 @torch.no_grad()
 def test(model, test_loader, epoch):
 
@@ -71,35 +63,23 @@ def test(model, test_loader, epoch):
 
         all_outputs.append(torch.sigmoid(logits))
         all_targets.append(targets)
-
     
     targets, outputs = torch.cat(all_targets), torch.cat(all_outputs)
     auroc = multilabel_auroc(outputs, targets, num_labels=len(target_labels), average=None, thresholds=None)
     accuracy = multilabel_accuracy(outputs, targets, num_labels=len(target_labels), average=None)
 
-    log_bar(wandb, "Example Probabilities", target_labels, outputs[0], ["Class", "Probability"], epoch)
-    log_bar(wandb, "Example Targets", target_labels, targets[0], ["Class", "Probability"], epoch)
-    log_bar(wandb, "AUROC", target_labels, auroc, ["Class", "AUROC"], epoch)
-    log_bar(wandb, "Accuracy", target_labels, accuracy, ["Class", "Accuracy"], epoch)
-    
-    wandb.log({
-        "Test Error" : test_error / len(test_loader.dataset)
-    })
+    outputs = log_bar(wandb, "Example Probabilities", target_labels, outputs[0], ["Class", "Probability"], epoch)
+    targets = log_bar(wandb, "Example Targets", target_labels, targets[0], ["Class", "Probability"], epoch)
+    auroc = log_bar(wandb, "AUROC", target_labels, auroc, ["Class", "AUROC"], epoch)
+    accuracy = log_bar(wandb, "Accuracy", target_labels, accuracy, ["Class", "Accuracy"], epoch)
 
-    return test_error / len(test_loader.dataset)
-
+    return test_error / len(test_loader.dataset), outputs, targets, auroc, accuracy
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str)
-
-    args = parser.parse_args()
-    PATH = args.data 
-
     use_cuda = not config.no_cuda and torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
 
-    train_loader, val_loader, test_loader, num_classes = get_data_loaders(config, PATH)
+    train_loader, val_loader, test_loader, num_classes = get_data_loaders(config)
 
     os.makedirs('checkpoints', exist_ok=True)
     os.makedirs('outputs', exist_ok=True)
@@ -119,13 +99,25 @@ def main():
 
     for epoch in range(config.epochs):
 
-        train(model, train_loader, epoch, optimiser)
+        train_error = train(model, train_loader, epoch, optimiser)
 
         if not epoch % 5:
-            loss = test(model, val_loader, epoch)
+            val_error, outputs, targets, auroc, accuracy = test(model, val_loader, epoch)
 
-            if loss < best_val_loss:
+            #  wandb seems to overwrite tables and charts so name according to epoch
+            wandb.log({
+                "Train Error" : train_error / len(train_loader.dataset),
+                "Test Error" : val_error / len(test_loader.dataset),
+                f'Example Probabilities {epoch}': outputs,
+                f'Example Targets {epoch}': targets,
+                f'AUROC {epoch}': auroc,
+                f'Accuracy {epoch}': accuracy,
+            })
+
+            if val_error < best_val_loss:
                 torch.save(model.state_dict(), output_location)
+        else:
+            wandb.log({"Train Error" : train_error / len(train_loader.dataset)})
 
 if __name__ == '__main__':
     main()
