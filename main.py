@@ -103,7 +103,6 @@ def main():
 
         if not epoch % 5:
             val_error, outputs, targets, auroc, accuracy = test(model, val_loader, epoch)
-            print(auroc, accuracy)
 
             #  wandb seems to overwrite tables and charts so name according to epoch
             wandb.log({
