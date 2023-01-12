@@ -128,7 +128,7 @@ def main():
 
     for epoch in range(config.epochs):
 
-        #train(model, train_loader, epoch * num_train_inst, optimiser)
+        train(model, train_loader, epoch * num_train_inst, optimiser)
 
         if not epoch % 5:
             loss = test(model, val_loader)
