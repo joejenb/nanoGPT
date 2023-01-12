@@ -70,9 +70,9 @@ class ClassificationCollator:
         targets = [inst['targets'] for inst in data]
 
         inputs = self.tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
-        inputs.update({'targets': torch.tensor(targets)})
+        #inputs.update({'targets': torch.tensor(targets)})
 
-        return inputs
+        return inputs['input_ids'], torch.tensor(targets)
 
 def one_hot_targets(data, num_labels):
     dict_targets = []
