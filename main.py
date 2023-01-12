@@ -47,7 +47,7 @@ def train(model, train_loader, total_iter_num, optimiser):
         train_error += loss.item()
 
     wandb.log({
-        "Train Error": (train_error) / len(train_loader.dataset)
+        "Train Error": train_error / len(train_loader.dataset)
     })
 
 
@@ -87,11 +87,13 @@ def test(model, test_loader):
     accuracy_table = wandb.Table(data=accuracy, columns = ["Class", "Accuracy"])
 
     wandb.log({
+        "Test Error" : test_error / len(test_loader.dataset),
         "Example Probabilities" : wandb.plot.bar(probs_table, "Class", "Probability", title="Example Probabilities"),
         "Example Targets" : wandb.plot.bar(targets_table, "Class", "Probability", title="Example Targets"),
         "AUROC" : wandb.plot.bar(auroc_table, "Class", "AUROC", title="AUROC"),
         "Accuracy" : wandb.plot.bar(accuracy_table, "Class", "Accuracy", title="Accuracy")
     })
+    return test_error / len(test_loader.dataset)
 
 
 def main():
@@ -129,7 +131,7 @@ def main():
         #train(model, train_loader, epoch * num_train_inst, optimiser)
 
         if not epoch % 5:
-            loss = test(model, test_loader)
+            loss = test(model, val_loader)
 
             if loss < best_val_loss:
                 torch.save(model.state_dict(), output_location)
