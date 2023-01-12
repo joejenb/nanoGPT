@@ -72,7 +72,7 @@ def test(model, test_loader):
         all_targets.append(targets)
 
     
-    targets, outputs = torch.cat(targets), torch.cat(outputs)
+    targets, outputs = torch.cat(all_targets), torch.cat(all_outputs)
     auroc = multilabel_auroc(outputs, targets, num_labels=len(target_labels), average=None, thresholds=None)
     accuracy = multilabel_accuracy(outputs, targets, num_labels=len(target_labels), average=None)
 
