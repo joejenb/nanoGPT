@@ -48,8 +48,7 @@ def train(model, train_loader, epoch, optimiser):
         train_error += loss.item()
 
     wandb.log({
-        "Train Error" : train_error / len(train_loader.dataset),
-        "epoch" : epoch
+        "Train Error" : train_error / len(train_loader.dataset)
     })
 
 
@@ -84,8 +83,7 @@ def test(model, test_loader, epoch):
     log_bar(wandb, "Accuracy", target_labels, accuracy, ["Class", "Accuracy"], epoch)
     
     wandb.log({
-        "Test Error" : test_error / len(test_loader.dataset),
-        "epoch" : epoch
+        "Test Error" : test_error / len(test_loader.dataset)
     })
 
     return test_error / len(test_loader.dataset)
@@ -121,7 +119,7 @@ def main():
 
     for epoch in range(config.epochs):
 
-        #train(model, train_loader, epoch, optimiser)
+        train(model, train_loader, epoch, optimiser)
 
         if not epoch % 5:
             loss = test(model, val_loader, epoch)
