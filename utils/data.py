@@ -107,7 +107,8 @@ def get_data_loaders(config):
 
 def log_bar(wandb, title, labels, values, columns, epoch):
     #entries = [[label, val] for (label, val) in zip(labels, values)]
-    entries = [[title, val] for val in values]
+    print(values)
+    entries = [[title, values]]
     table = wandb.Table(data=entries, columns = columns)
     
     return wandb.plot.bar(table, columns[0], columns[1], title=title)
