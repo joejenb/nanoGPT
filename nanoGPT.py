@@ -297,8 +297,6 @@ class nanoGPTClassifier(nn.Module):
                 loss_fct = nn.CrossEntropyLoss()
                 loss = loss_fct(pooled_logits.view(-1, self.num_labels), labels.view(-1))
             elif self.config.problem_type == "multi_label_classification":
-                print(pooled_logits.dtype)
-                print(labels.dtype)
                 loss_fct = nn.BCEWithLogitsLoss()
                 loss = loss_fct(pooled_logits, labels)
 
