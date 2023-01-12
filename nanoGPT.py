@@ -249,12 +249,13 @@ class nanoGPT(nn.Module):
 class nanoGPTClassifier(nn.Module):
     _keys_to_ignore_on_load_missing = [r"h\.\d+\.attn\.masked_bias", r"lm_head.weight"]
 
-    def __init__(self, config):
+    def __init__(self, config, device):
         super().__init__()
         self.num_labels = config.num_labels
         self.transformer = nanoGPT.from_pretrained(config)
         self.score = nn.Linear(config.vocab_size, self.num_labels, bias=False)
         self.config = config
+        self.device = device
 
     def forward(self, input_ids=None, labels=None, return_dict=None):
         transformer_outputs = self.transformer(input_ids)
