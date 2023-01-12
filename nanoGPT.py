@@ -224,12 +224,12 @@ class nanoGPT(nn.Module):
 
 class nanoGPTClassifier(nanoGPT):
     def __init__(self, config, device):
-        super(nanoGPTClassifier).__init__(config, device)
+        super(nanoGPTClassifier, self).__init__(config, device)
         self.num_labels = config.num_labels
         self.score = nn.Linear(config.vocab_size, self.num_labels, bias=False)
 
     def forward(self, input_ids, labels):
-        hidden_states, _ = super(nanoGPTClassifier).forward(input_ids)
+        hidden_states, _ = super(nanoGPTClassifier, self).forward(input_ids)
         logits = self.score(hidden_states)
 
         batch_size, sequence_length = input_ids.shape[:2]
