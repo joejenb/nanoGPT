@@ -134,18 +134,18 @@ class nanoGPT(nn.Module):
         for block in self.transformer.h:
             block.attn.bias = block.attn.bias[:,:,:block_size,:block_size]
 
-    def from_pretrained(self, config):
-        assert config.model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
+    def from_pretrained(self):
+        assert self.config.model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
         config_args = {
             'gpt2':         dict(num_layers=12, num_heads=12, num_embeddings=768),  # 124M params
             'gpt2-medium':  dict(num_layers=24, num_heads=16, num_embeddings=1024), # 350M params
             'gpt2-large':   dict(num_layers=36, num_heads=20, num_embeddings=1280), # 774M params
             'gpt2-xl':      dict(num_layers=48, num_heads=25, num_embeddings=1600), # 1558M params
-        }[config.model_type]
+        }[self.config.model_type]
 
         sd = self.state_dict()
 
-        model_hf = GPT2LMHeadModel.from_pretrained(config.model_type)
+        model_hf = GPT2LMHeadModel.from_pretrained(self.config.model_type)
         sd_hf = model_hf.state_dict()
 
         keys = [k for k in sd_hf if not k.endswith('attn.masked_bias')] # ignore these

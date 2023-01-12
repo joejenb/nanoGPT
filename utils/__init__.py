@@ -33,6 +33,8 @@ def load_from_checkpoint(model, checkpoint_location):
     if os.path.exists(checkpoint_location):
         state_dict = torch.load(checkpoint_location, map_location=model.device)
         model.load_state_dict(state_dict)
+    else:
+        model.from_pretrained()
     return model
 
 def get_lr(iter, learning_rate, config):
