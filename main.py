@@ -72,8 +72,6 @@ def test(model, test_loader, epoch):
 
     outputs = log_bar(wandb, "Example Probabilities", target_labels, outputs[0], ["Class", "Probability"], epoch)
     targets = log_bar(wandb, "Example Targets", target_labels, targets[0], ["Class", "Probability"], epoch)
-    auroc = log_bar(wandb, "AUROC", target_labels, auroc, ["Class", "AUROC"], epoch)
-    accuracy = log_bar(wandb, "Accuracy", target_labels, accuracy, ["Class", "Accuracy"], epoch)
 
     return test_error, outputs, targets, auroc, accuracy
 
@@ -112,8 +110,8 @@ def main():
                 "Validation Error" : val_error / len(val_loader.dataset),
                 f'Example Probabilities {epoch}': outputs,
                 f'Example Targets {epoch}': targets,
-                f'AUROC {epoch}': auroc,
-                f'Accuracy {epoch}': accuracy,
+                f'AUROC': auroc,
+                f'Accuracy' : accuracy,
             })
 
             if val_error < best_val_loss:
