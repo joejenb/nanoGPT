@@ -75,7 +75,7 @@ def test(model, test_loader, epoch):
     auroc = log_bar(wandb, "AUROC", target_labels, auroc, ["Class", "AUROC"], epoch)
     accuracy = log_bar(wandb, "Accuracy", target_labels, accuracy, ["Class", "Accuracy"], epoch)
 
-    return test_error / len(test_loader.dataset), outputs, targets, auroc, accuracy
+    return test_error, outputs, targets, auroc, accuracy
 
 def main():
     use_cuda = not config.no_cuda and torch.cuda.is_available()
