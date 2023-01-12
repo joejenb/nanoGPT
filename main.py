@@ -29,7 +29,7 @@ def train(model, train_loader, total_iter_num, optimiser):
 
     for iter_num, (ids, targets) in enumerate(train_loader):
 
-        lr = get_lr(total_iter_num + iter_num)
+        lr = get_lr(total_iter_num + iter_num, optimiser.param_groups[0]['lr'], config)
         for param_group in optimiser.param_groups:
             param_group['lr'] = lr
 
