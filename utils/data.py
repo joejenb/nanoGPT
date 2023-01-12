@@ -106,8 +106,8 @@ def get_data_loaders(config):
     return train_loader, val_loader, test_loader, num_classes
 
 def log_bar(wandb, title, labels, values, columns, epoch):
-    entries = [[label, val] for (label, val) in zip(labels, values)]
+    #entries = [[label, val] for (label, val) in zip(labels, values)]
+    entries = [[title, val] for val in values]
     table = wandb.Table(data=entries, columns = columns)
     
-    #  wandb seems to overwrite tabeles and charts so name according to epoch
     return wandb.plot.bar(table, columns[0], columns[1], title=title)
