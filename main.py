@@ -78,10 +78,10 @@ def test(model, test_loader, epoch):
     auroc = multilabel_auroc(outputs, targets, num_labels=len(target_labels), average=None, thresholds=None)
     accuracy = multilabel_accuracy(outputs, targets, num_labels=len(target_labels), average=None)
 
-    log_bar(wandb, "Example Probabilities", outputs[0], ["Class", "Probability"], epoch)
-    log_bar(wandb, "Example Targets", targets[0], ["Class", "Probability"], epoch)
-    log_bar(wandb, "AUROC", auroc, ["Class", "AUROC"], epoch)
-    log_bar(wandb, "Accuracy", accuracy, ["Class", "Accuracy"], epoch)
+    log_bar(wandb, "Example Probabilities", target_labels, outputs[0], ["Class", "Probability"], epoch)
+    log_bar(wandb, "Example Targets", target_labels, targets[0], ["Class", "Probability"], epoch)
+    log_bar(wandb, "AUROC", target_labels, auroc, ["Class", "AUROC"], epoch)
+    log_bar(wandb, "Accuracy", target_labels, accuracy, ["Class", "Accuracy"], epoch)
     
     wandb.log({
         "Test Error" : test_error / len(test_loader.dataset),
