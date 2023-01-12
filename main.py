@@ -47,7 +47,7 @@ def train(model, train_loader, total_iter_num, optimiser):
         train_error += loss.item()
 
     wandb.log({
-        "Train Reconstruction Error": (train_error) / len(train_loader.dataset)
+        "Train Error": (train_error) / len(train_loader.dataset)
     })
 
 
@@ -57,8 +57,8 @@ def test(model, test_loader):
     model.eval() 
     test_error = 0
 
-    outputs = []
-    targets = []
+    all_outputs = []
+    all_targets = []
 
     for iter_num, (ids, targets) in enumerate(test_loader):
         ids = ids.to(model.device)
@@ -68,8 +68,8 @@ def test(model, test_loader):
         
         test_error += loss.item()
 
-        outputs.append(torch.sigmoid(logits))
-        targets.append(targets)
+        all_outputs.append(torch.sigmoid(logits))
+        all_targets.append(targets)
 
     
     targets, outputs = torch.cat(targets), torch.cat(outputs)
@@ -126,8 +126,7 @@ def main():
 
     for epoch in range(config.epochs):
 
-        
-        train(model, train_loader, epoch * num_train_inst, optimiser)
+        #train(model, train_loader, epoch * num_train_inst, optimiser)
 
         if not epoch % 5:
             loss = test(model, test_loader)
