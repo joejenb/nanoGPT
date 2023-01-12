@@ -17,24 +17,25 @@ from configs.go_emotions_config import config
 
 from utils import load_from_checkpoint, MakeConfig
 from utils.data import _GO_EMOTIONS_LABELS as target_labels
-from utils.data import get_data_loaders
+from utils.data import get_data_loaders, log_bar
 
 wandb.init(project="nanoGPTClassifier-GoEmotions", config=config)
 config = MakeConfig(config)
 
-def train(model, train_loader, total_iter_num, optimiser):
+def train(model, train_loader, epoch, optimiser):
 
     model.train()
     train_error = 0
 
     for iter_num, (ids, targets) in enumerate(train_loader):
 
-        lr = get_lr(total_iter_num + iter_num, optimiser.param_groups[0]['lr'], config)
+        ids = ids.to(model.device)
+        targets = targets.to(model.device)
+
+        lr = get_lr((epoch * len(train_loader.dataset) // ids.shape[0]) + iter_num, optimiser.param_groups[0]['lr'], config)
         for param_group in optimiser.param_groups:
             param_group['lr'] = lr
 
-        ids = ids.to(model.device)
-        targets = targets.to(model.device)
         optimiser.zero_grad()
 
         _, loss = model(ids, targets)
@@ -47,12 +48,13 @@ def train(model, train_loader, total_iter_num, optimiser):
         train_error += loss.item()
 
     wandb.log({
-        "Train Error": train_error / len(train_loader.dataset)
+        "Train Error" : train_error / len(train_loader.dataset),
+        "epoch" : epoch
     })
 
 
 @torch.no_grad()
-def test(model, test_loader):
+def test(model, test_loader, epoch):
 
     model.eval() 
     test_error = 0
@@ -76,23 +78,16 @@ def test(model, test_loader):
     auroc = multilabel_auroc(outputs, targets, num_labels=len(target_labels), average=None, thresholds=None)
     accuracy = multilabel_accuracy(outputs, targets, num_labels=len(target_labels), average=None)
 
-    probs = [[label, val] for (label, val) in zip(target_labels, outputs[0])]
-    targets = [[label, val] for (label, val) in zip(target_labels, targets[0])]
-    auroc = [[label, val] for (label, val) in zip(target_labels, auroc)]
-    accuracy = [[label, val] for (label, val) in zip(target_labels, accuracy)]
-
-    probs_table = wandb.Table(data=probs, columns = ["Class", "Probability"])
-    targets_table = wandb.Table(data=targets, columns = ["Class", "Probability"])
-    auroc_table = wandb.Table(data=auroc, columns = ["Class", "AUROC"])
-    accuracy_table = wandb.Table(data=accuracy, columns = ["Class", "Accuracy"])
-
+    log_bar(wandb, "Example Probabilities", outputs[0], ["Class", "Probability"], epoch)
+    log_bar(wandb, "Example Targets", targets[0], ["Class", "Probability"], epoch)
+    log_bar(wandb, "AUROC", auroc, ["Class", "AUROC"], epoch)
+    log_bar(wandb, "Accuracy", accuracy, ["Class", "Accuracy"], epoch)
+    
     wandb.log({
         "Test Error" : test_error / len(test_loader.dataset),
-        "Example Probabilities" : wandb.plot.bar(probs_table, "Class", "Probability", title="Example Probabilities"),
-        "Example Targets" : wandb.plot.bar(targets_table, "Class", "Probability", title="Example Targets"),
-        "AUROC" : wandb.plot.bar(auroc_table, "Class", "AUROC", title="AUROC"),
-        "Accuracy" : wandb.plot.bar(accuracy_table, "Class", "Accuracy", title="Accuracy")
+        "epoch" : epoch
     })
+
     return test_error / len(test_loader.dataset)
 
 
@@ -107,8 +102,6 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
 
     train_loader, val_loader, test_loader, num_classes = get_data_loaders(config, PATH)
-    num_train_inst = len(train_loader.dataset) // config.batch_size
-    num_test_inst = len(test_loader.dataset) // config.batch_size
 
     os.makedirs('checkpoints', exist_ok=True)
     os.makedirs('outputs', exist_ok=True)
@@ -128,10 +121,10 @@ def main():
 
     for epoch in range(config.epochs):
 
-        train(model, train_loader, epoch * num_train_inst, optimiser)
+        train(model, train_loader, epoch, optimiser)
 
         if not epoch % 5:
-            loss = test(model, val_loader)
+            loss = test(model, val_loader, epoch)
 
             if loss < best_val_loss:
                 torch.save(model.state_dict(), output_location)

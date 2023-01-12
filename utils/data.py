@@ -1,5 +1,4 @@
 import torch
-import torchvision
 import pandas as pd
 
 from torchvision import transforms
@@ -7,6 +6,7 @@ from torch.utils.data import random_split
 
 from datasets import load_dataset
 from transformers import GPT2Tokenizer
+
 from sklearn.preprocessing import MultiLabelBinarizer
 from torch.utils.data import Dataset, DataLoader
 
@@ -70,21 +70,8 @@ class ClassificationCollator:
         targets = [inst['targets'] for inst in data]
 
         inputs = self.tokenizer(text=texts, return_tensors="pt", padding=True, truncation=True,  max_length=self.max_sequence_len)
-        #inputs.update({'targets': torch.tensor(targets)})
 
         return inputs['input_ids'], torch.tensor(targets, dtype=torch.float32)
-
-def one_hot_targets(data, num_labels):
-    dict_targets = []
-    for i in range(len(data)):
-        d = dict(zip(range(num_labels), [0]*num_labels))
-        labels = data.loc[i]["labels"]
-        for label in labels:
-            d[label] = 1
-        dict_targets.append(d)
-
-    data_targets = pd.DataFrame(dict_targets)
-    return data_targets
 
 def get_tokenizer(tokenizer_name):
     if tokenizer_name == "GPT2Tokenizer":
@@ -117,3 +104,12 @@ def get_data_loaders(config, PATH):
     test_loader = DataLoader(test_set, collate_fn=collator, batch_size=config.batch_size, shuffle=False)
     
     return train_loader, val_loader, test_loader, num_classes
+
+def log_bar(wandb, title, labels, values, columns, epoch):
+    entries = [[label, val] for (label, val) in zip(labels, values)]
+    table = wandb.Table(data=entries, columns = columns)
+    
+    #  wandb seems to overwrite tabeles and charts so name according to epoch
+    wandb.log({
+        title + str(epoch) : wandb.plot.bar(table, columns[0], columns[1], title=title)
+    })
