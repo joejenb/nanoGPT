@@ -67,8 +67,8 @@ def test(model, test_loader, epoch):
         all_targets.append(targets)
     
     targets, outputs = torch.cat(all_targets), torch.cat(all_outputs)
-    auroc = multilabel_auroc(outputs, targets, num_labels=len(target_labels), average=None, thresholds=None)
-    accuracy = multilabel_accuracy(outputs, targets, num_labels=len(target_labels), average=None)
+    auroc = multilabel_auroc(outputs, targets, num_labels=len(target_labels), average="micro", thresholds=None)
+    accuracy = multilabel_accuracy(outputs, targets, num_labels=len(target_labels), average="micro")
 
     outputs = log_bar(wandb, "Example Probabilities", target_labels, outputs[0], ["Class", "Probability"], epoch)
     targets = log_bar(wandb, "Example Targets", target_labels, targets[0], ["Class", "Probability"], epoch)
@@ -101,7 +101,7 @@ def main():
 
     for epoch in range(config.epochs):
 
-        train_error = train(model, train_loader, epoch, optimiser)
+        train_error = 0#train(model, train_loader, epoch, optimiser)
 
         if not epoch % 5:
             val_error, outputs, targets, auroc, accuracy = test(model, val_loader, epoch)
