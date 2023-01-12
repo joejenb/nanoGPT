@@ -43,6 +43,8 @@ def train(model, train_loader, epoch, optimiser):
         optimiser.step()
         
         train_error += loss.item()
+    
+    return train_error
 
 @torch.no_grad()
 def test(model, test_loader, epoch):
