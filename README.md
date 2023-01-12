@@ -17,9 +17,11 @@ Dependencies:
 $ python main.py
 ```
 
-To specify what size of nanoGPT to use for the backbone requires changing the config file that is imported into main.
+Please note, to specify what size of nanoGPT to use for the backbone requires changing parameters in the config file imported into main.
 
 ## Results
+
+All results collected are using nanoGPT with 12 layers, 12 heads and 768 embeddings.
 ### GoEmotions
 #### Error
 #### Accuracy

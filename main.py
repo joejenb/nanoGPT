@@ -109,7 +109,7 @@ def main():
             #  wandb seems to overwrite tables and charts so name according to epoch
             wandb.log({
                 "Train Error" : train_error / len(train_loader.dataset),
-                "Test Error" : val_error / len(test_loader.dataset),
+                "Validation Error" : val_error / len(val_loader.dataset),
                 f'Example Probabilities {epoch}': outputs,
                 f'Example Targets {epoch}': targets,
                 f'AUROC {epoch}': auroc,
