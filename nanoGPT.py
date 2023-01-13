@@ -237,7 +237,7 @@ class nanoGPTClassifier(nanoGPT):
         pooled_logits = logits[torch.arange(batch_size, device=logits.device), sequence_lengths]
 
         loss = None
-        if labels:
+        if labels != None:
             if self.config.problem_type == "regression":
                 loss_fct = nn.MSELoss()
                 if self.num_labels == 1:
