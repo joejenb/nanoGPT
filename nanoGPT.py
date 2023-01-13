@@ -227,7 +227,7 @@ class nanoGPTClassifier(nanoGPT):
         self.num_labels = config.num_labels
         self.score = nn.Linear(config.vocab_size, self.num_labels, bias=False)
 
-    def forward(self, input_ids, labels):
+    def forward(self, input_ids, labels=None):
         hidden_states, _ = super(nanoGPTClassifier, self).forward(input_ids)
         logits = self.score(hidden_states)
 
@@ -237,20 +237,21 @@ class nanoGPTClassifier(nanoGPT):
         pooled_logits = logits[torch.arange(batch_size, device=logits.device), sequence_lengths]
 
         loss = None
-        if self.config.problem_type == "regression":
-            loss_fct = nn.MSELoss()
-            if self.num_labels == 1:
-                loss = loss_fct(pooled_logits.squeeze(), labels.squeeze())
-            else:
+        if labels:
+            if self.config.problem_type == "regression":
+                loss_fct = nn.MSELoss()
+                if self.num_labels == 1:
+                    loss = loss_fct(pooled_logits.squeeze(), labels.squeeze())
+                else:
+                    loss = loss_fct(pooled_logits, labels)
+
+            elif self.config.problem_type == "single_label_classification":
+                loss_fct = nn.CrossEntropyLoss()
+                loss = loss_fct(pooled_logits.view(-1, self.num_labels), labels.view(-1))
+
+            elif self.config.problem_type == "multi_label_classification":
+                loss_fct = nn.BCEWithLogitsLoss()
                 loss = loss_fct(pooled_logits, labels)
-
-        elif self.config.problem_type == "single_label_classification":
-            loss_fct = nn.CrossEntropyLoss()
-            loss = loss_fct(pooled_logits.view(-1, self.num_labels), labels.view(-1))
-
-        elif self.config.problem_type == "multi_label_classification":
-            loss_fct = nn.BCEWithLogitsLoss()
-            loss = loss_fct(pooled_logits, labels)
 
         return pooled_logits, loss
 
